@@ -9,63 +9,70 @@ To write a python program to perform stop and wait protocol
 5. If your frames reach the server it will send ACK signal to client
 6. Stop the Program
 ## PROGRAM
-Client:
+## Server:
 ```
+
 import socket
+import time
 
-print("Client program started")
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.bind(('localhost', 9999))
+server_socket.listen(1)
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-s.connect(('localhost', 9000))
-
-print("Connected to server!")
+print("Server: Waiting for client connection...")
+conn, addr = server_socket.accept()
+print(f"Server: Connected to {addr}\n")
 
 while True:
-    data = input("Enter frame: ")
-
-    s.send(data.encode())
-
-    if data.lower() == "exit":
+  
+    frame = conn.recv(1024).decode()
+    if not frame or frame == "END":
+        print("Server: Transmission completed.")
         break
 
-    ack = s.recv(1024).decode()
+    print(f"Server: Received Frame {frame}")
 
-    print("Acknowledgement received:", ack)
+    time.sleep(1)
 
-s.close()
+    ack = f"ACK{frame}"
+    conn.send(ack.encode())
+    print(f"Server: Sent {ack}\n")
+
+conn.close()
+server_socket.close()
 ```
-Server:
+## Client:
 ```
+
 import socket
+import time
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect(('localhost', 9999))
 
-s.bind(('localhost', 9000))
-s.listen(1)
+frames = int(input("Enter number of frames to send: "))
 
-print("Server is waiting for client...")
+for i in range(frames):
+    frame = str(i)
+    print(f"Client: Sending Frame {frame}")
+    client_socket.send(frame.encode())
 
-c, addr = s.accept()
-print("Client connected:", addr)
+    ack = client_socket.recv(1024).decode()
+    print(f"Client: Received {ack}\n")
+    time.sleep(1)  # Simulate delay
 
-while True:
-    data = c.recv(1024).decode()
+client_socket.send("END".encode())
+print("Client: Transmission completed.")
 
-    if not data or data.lower() == "exit":
-        print("Connection closed")
-        break
-
-    print("Received frame:", data)
-
-    c.send("ACK".encode())
-    print("Acknowledgement sent")
-
-c.close()
-s.close()
+client_socket.close()
 ```
-## OUTPUT
-<img width="1600" height="533" alt="WhatsApp Image 2026-11-04 at 8 15 56 AM" src="https://github.com/user-attachments/assets/b11100c8-6bfb-4bf2-9dbb-7680a5664c03" />
+## OUTPUT:
 
-## RESULT
+## Server & Client:
+
+<img width="1317" height="661" alt="image" src="https://github.com/user-attachments/assets/150ac6e5-847e-456b-8e1b-e0b2283eac37" />
+
+
+
+## RESULT:
 Thus, python program to perform stop and wait protocol was successfully executed.
